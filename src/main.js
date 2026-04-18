@@ -6,7 +6,7 @@ import {MyGame} from './scenes/MyGame';
 
 
 let gameInstance;
-let version     = "v1.0.0";
+let version     = "v1.0.1";
 let game_name   = "Puzzle Lab"
 let game_id     = 160000
 

@@ -346,7 +346,10 @@ export class MyGame extends Scene {
         this.instruction = this.add.text(x,y, "to lock cursor", {
             font: '14px Inter',
             fill: '#fff'
-        }).setAlpha(0.4);
+        }).setAlpha(0.4).setVisible(0);
+
+        
+
 
         // Tell user about mouse
         //“Click to start (mouse will be captured). Press ESC to exit.”
@@ -371,8 +374,10 @@ export class MyGame extends Scene {
             stroke: '#000000',       // Border color (red)
             strokeThickness: 8       // Border thickness
         }).setOrigin(1,0);
-        this.render_score();
 
+
+        
+        
 
         this.debugtxt = this.add.text( 10, 10, "", {
             font: '20px Inter',
@@ -381,11 +386,8 @@ export class MyGame extends Scene {
         
 
         this.ingame_cursor = this.add.graphics();
-        this.ingame_cursor.lineStyle(2, 0x000000, 1);
-        this.ingame_cursor.strokeCircle( this.sys.game.scale.width/2, this.sys.game.scale.height/2, 6);
-        this.ingame_cursor.lineStyle(2, 0xffffff, 1);
-        this.ingame_cursor.strokeCircle( this.sys.game.scale.width/2, this.sys.game.scale.height/2, 4);
-        
+        this.draw_ingame_cursor();
+
         this.ingame_cursor.setVisible(0);
         this.input.mouse.disableContextMenu();
         
@@ -403,6 +405,21 @@ export class MyGame extends Scene {
 
         this.create_onscreen_keyboard();
 
+        this.scale.on('resize', (gameSize) => {
+            this.lmb.y = this.sys.game.scale.height - 10;
+            this.instruction.y = this.sys.game.scale.height - 40;
+            this.scoreTxt.x = this.sys.game.scale.width - 10;
+            versiontxt.x = this.sys.game.scale.width - 10;
+            versiontxt.y = this.sys.game.scale.height - 14;
+            this.draw_ingame_cursor();
+            this.osk.x = this.sys.game.scale.width  * 0.5;
+            this.osk.y = this.sys.game.scale.height * 0.7;
+            this.osk.scaleX = this.sys.game.scale.width/ 1496;
+            this.osk.scaleY = this.sys.game.scale.height/ 796;
+            this.text_effect.sprite.x = this.sys.game.scale.width  * 0.5;
+            this.text_effect.sprite.y = this.sys.game.scale.height * 0.5;
+            
+        });
         
         
         if ( this.created == null ) {
@@ -471,6 +488,15 @@ export class MyGame extends Scene {
         
     }
 
+    //---
+    draw_ingame_cursor() {
+        this.ingame_cursor.clear();
+        this.ingame_cursor.lineStyle(2, 0x000000, 1);
+        this.ingame_cursor.strokeCircle( this.sys.game.scale.width/2, this.sys.game.scale.height/2, 6);
+        this.ingame_cursor.lineStyle(2, 0xffffff, 1);
+        this.ingame_cursor.strokeCircle( this.sys.game.scale.width/2, this.sys.game.scale.height/2, 4);
+        
+    }
 
     //----
     onPointerLock( pointer ) {
@@ -920,6 +946,11 @@ export class MyGame extends Scene {
         this.threejs_scene.add( gate );        
     }
 
+
+    //-------
+    osk_draw_keyboard() {
+
+    }
 
     //-----
     create_onscreen_keyboard() {
@@ -1484,7 +1515,10 @@ export class MyGame extends Scene {
 
             this.loadingText.setVisible(0);
             this.lmb.setVisible(1);
-            
+            this.instruction.setVisible(1);
+
+            this.render_score();
+
             
             this.clear_smokes();
             this.reposition_objects();
@@ -1788,8 +1822,9 @@ export class MyGame extends Scene {
 
         this.player_collisions();
 
+        //this.debugtxt.setText( this.sys.game.scale.width + " " + this.sys.game.scale.height );
 
-        /*
+        /*  
         this.debugtxt.setText( 
             this.player.collider.start.x.toFixed(2) + ", " +  
             this.player.collider.start.y.toFixed(2) + ", " + 
