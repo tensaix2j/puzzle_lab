@@ -156,10 +156,20 @@ const main = () => {
     
     const queryParams = getQueryParams()
     gameInstance = new Game(config);
-    
+
+    let puzzlelab_score = localStorage.getItem("puzzlelab_score");
+    if (!puzzlelab_score) {
+        puzzlelab_score = 0;
+    }
+    globalGameData.puzzlelab_score = puzzlelab_score;
 
     //--------------
     document.addEventListener('submit', async (e) => {
+
+        if ( e.detail.score  > globalGameData.puzzlelab_score ) {
+            globalGameData.puzzlelab_score = e.detail.score;
+            localStorage.setItem("puzzlelab_score", globalGameData.puzzlelab_score );
+        }
         submitHighScore(e.detail.score, game_id );
     })
     

@@ -14,6 +14,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
+import { globalGameData } from '../GlobalGameData';
 
 import { PuzLevel01 } from './Puzlevel01'
 import { PuzLevel02 } from './Puzlevel02'
@@ -187,6 +188,7 @@ export class MyGame extends Scene {
             this.load.audio('stone', 'sounds/stone.mp3');
             this.load.audio('switch', 'sounds/switch.mp3');
             this.load.audio('buttonshort', 'sounds/buttonshort.mp3');
+            this.load.audio('bgm', 'sounds/lettinggo.mp3');
             
             
             
@@ -334,8 +336,9 @@ export class MyGame extends Scene {
         let x = 10;
         let y = this.sys.game.scale.height - 10;
 
-        this.lmb = this.add.image(x, y, 'lmb').setOrigin(0, 1).setAlpha(0.4);
+        this.lmb = this.add.image(x, y, 'lmb').setOrigin(0, 1).setAlpha(0.8);
         this.lmb.setScale(0.4, 0.4 );
+        this.lmb.flipX = true;
         this.lmb.setVisible(0);    
 
         x = 60;
@@ -357,14 +360,19 @@ export class MyGame extends Scene {
         }).setOrigin(1, 1); 
 
 
+
+        // score
+        this.score = globalGameData.puzzlelab_score
+
         y = 10;        
-        this.scoreTxt = this.add.text( x, y, "Solved : 0/22", {
+        this.scoreTxt = this.add.text( x, y, "", {
             font: '20px Inter',
             fill: '#fff',
             stroke: '#000000',       // Border color (red)
             strokeThickness: 8       // Border thickness
         }).setOrigin(1,0);
-        
+        this.render_score();
+
 
         this.debugtxt = this.add.text( 10, 10, "", {
             font: '20px Inter',
@@ -379,7 +387,7 @@ export class MyGame extends Scene {
         this.ingame_cursor.strokeCircle( this.sys.game.scale.width/2, this.sys.game.scale.height/2, 4);
         
         this.ingame_cursor.setVisible(0);
-        
+        this.input.mouse.disableContextMenu();
         
         this.text_effect.sprite = this.add.text( 
             this.sys.game.scale.width  * 0.5  , 
@@ -420,6 +428,9 @@ export class MyGame extends Scene {
             this.snds["plop"] = this.sound.add('plop');
             this.snds["plopwater"] = this.sound.add('plopwater');
             
+            this.snds["bgm"] = this.sound.add('bgm', { loop: true });
+            this.snds["bgm"].play();
+            
             
 
             // load glb
@@ -457,7 +468,7 @@ export class MyGame extends Scene {
         this.input.on('gameobjectdown', this.onGameObjectDown, this );
 
         this.reinit_game_dispatch();
-
+        
     }
 
 
@@ -466,13 +477,11 @@ export class MyGame extends Scene {
 
         if ( !this.input.mouse.locked ) {
             this.ingame_cursor.setVisible(0);
-            this.lmb.setTexture('lmb');
             this.instruction.setText("to lock cursor");
             
 
         } else {
             this.ingame_cursor.setVisible(1);
-            this.lmb.setTexture('esc');
             this.instruction.setText("to release cursor");
             
         }
@@ -484,26 +493,30 @@ export class MyGame extends Scene {
 
         //console.log("onPointerDown");
         if ( this.game_state == 0 ) {
-            this.keystates["touchstart"] = 1;
-            let puz = this.get_active_puzzles();
-            let ret;
-            if ( puz != null ) {
-                ret = puz.onPointerDown( pointer );
-            }
-            if ( puz == null || ret == null || ret == -1 ) {
+        
+            if ( pointer.button == 2 ) {
+
                 if ( this.input.mouse.locked == false )  {
                     console.log("Request pointer lock");
                     this.input.mouse.requestPointerLock();
-                } 
-            } 
-        } else if ( this.game_state == 1 ) {
+                }  else {
+                    console.log("Request pointer release");
+                    this.input.mouse.releasePointerLock();
+                }
 
+            } else {
+                
+                this.keystates["touchstart"] = 1;
+                let puz = this.get_active_puzzles();
+                let ret;
+                if ( puz != null ) {
+                    ret = puz.onPointerDown( pointer );
+                }
+                this.puzzles[9].onPointerDown( pointer );
+            }
         }
-        //console.log( puz, ret );
         
-        // Exception.
-        this.puzzles[9].onPointerDown( pointer );
-
+        
     }
     //---
     onGameObjectDown( pointer, item ) {
@@ -849,14 +862,19 @@ export class MyGame extends Scene {
         return count;
     }
 
+    //----
+    render_score() {
+        let solved = this.countOnes( this.score ) ;
+        this.scoreTxt.setText( "Solved : " + solved + "/22" );
+        
+    }
+
     //---
     completed_level(  level ) {
         
         this.score = this.score | ( 1 << (level - 1) ) ;
-        let solved = this.countOnes( this.score ) ;
-
-        this.scoreTxt.setText( "Solved : " + solved + "/22" );
         document.dispatchEvent(new CustomEvent('submit', {detail: {score: this.score }}));
+        this.render_score();
 
     }
 
@@ -1378,7 +1396,6 @@ export class MyGame extends Scene {
         this.castShadow( this.myape );
         this.threejs_scene.add( this.myape );
 
-        
         
         
         //let helper = new OctreeHelper( this.worldOctree );
