@@ -165,8 +165,13 @@ export class MyGame extends Scene {
             this.load.image( 'backspace' , 'images/backspace.png');
             this.load.image( 'close' , 'images/close.png');
             
-                
-
+            this.load.image( 'px' , 'images/px.png');
+            this.load.image( 'nx' , 'images/nx.png');
+            this.load.image( 'py' , 'images/py.png');
+            this.load.image( 'ny' , 'images/ny.png');
+            this.load.image( 'pz' , 'images/pz.png');
+            this.load.image( 'nz' , 'images/nz.png');
+            
 
             this.load.audio('applause', 'sounds/applause.mp3');
             this.load.audio('arrowhit', 'sounds/arrowhit.mp3');
@@ -840,22 +845,23 @@ export class MyGame extends Scene {
 
         const pmremGenerator = new THREE.PMREMGenerator( this.threejs_renderer );
         
-        let _this = this;
-        
+        const tex = this.textures;
         const cubeImages = [
-            'images/px.png',  // right
-            'images/nx.png',  // left
-            'images/py.png',  // top
-            'images/ny.png',  // bottom
-            'images/pz.png',  // front
-            'images/nz.png'   // back
+            tex.get('px').getSourceImage(), // right
+            tex.get('nx').getSourceImage(), // left
+            tex.get('py').getSourceImage(), // top
+            tex.get('ny').getSourceImage(), // bottom
+            tex.get('pz').getSourceImage(), // front
+            tex.get('nz').getSourceImage()  // back
         ];
-        let loader = new THREE.CubeTextureLoader();
-        loader.load( cubeImages , function (texture) {
-            _this.threejs_scene.environment = texture; 
-            _this.threejs_scene.background = texture;  // optional: visible sky            
-        });
-
+        const cubeTexture = new THREE.CubeTexture(cubeImages);
+        cubeTexture.needsUpdate = true;
+        cubeTexture.colorSpace = THREE.SRGBColorSpace;
+        
+        this.threejs_scene.environment = cubeTexture;
+        this.threejs_scene.background = cubeTexture;
+        this.threejs_scene.environmentIntensity = 0.1;
+        
         // 1. Create composer
         const composer = new EffectComposer( this.threejs_renderer);
 
